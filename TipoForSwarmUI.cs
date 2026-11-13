@@ -61,22 +61,22 @@ namespace SwarmExtensions.TIPO
             ComfyUIBackendExtension.NodeToFeatureMap["TIPO"] = "tipo_prompt_generation";
 
             // Define the Parameter Group
-            TIPOParamGroup = new("TIPO Prompt Generation", Toggles: true, Open: false, IsAdvanced: false, OrderPriority: 50, Description: "Uses the TIPO node (if installed on the ComfyUI backend) to generate or modify prompts based on the main prompt text. Requires the 'TIPO' custom node from Kahsolt.");
+            TIPOParamGroup = new("TIPO Prompt Generation", Toggles: true, Open: false, IsAdvanced: false, OrderPriority: 50, Description: "Use TIPO to upsample prompt.");
 
             // Register Parameters
             PromptType = T2IParamTypes.Register<string>(new(Name: "[TIPO] Prompt Type", Description: "Treat main prompt as 'tags' or 'natural language'.", Default: "tags", GetValues: (_) => ["tags", "natural language"], Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 2));
-            BanTags = T2IParamTypes.Register<string>(new(Name: "[TIPO] Banned Tags", Description: "Comma-separated list of tags to ban.", Default: "", Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 3, ViewType: ParamViewType.BIG));
-            TipoModel = T2IParamTypes.Register<string>(new(Name: "[TIPO] TIPO Model", Description: "Select TIPO model (requires backend connection).", Default: "", GetValues: (_) => { lock (ModelListLock) { return DynamicTipoModelList.AsEnumerable().Reverse().ToList(); } }, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 4));
-            Format = T2IParamTypes.Register<string>(new(Name: "[TIPO] Format", Description: "TIPO output format string.", Default: "<|special|>,\n<|characters|>, <|copyrights|>,\n<|artist|>,\n\n<|general|>,\n\n<|extended|>.\n\n<|quality|>, <|meta|>, <|rating|>", Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 5, ViewType: ParamViewType.BIG, Toggleable: true));
+            BanTags = T2IParamTypes.Register<string>(new(Name: "[TIPO] Banned Tags", Description: "Comma-separated list of tags to ban.", Default: "", Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 3, ViewType: ParamViewType.PROMPT));
+            TipoModel = T2IParamTypes.Register<string>(new(Name: "[TIPO] TIPO Model", Description: "TIPO model to use. 500m-ft is recommended.", Default: "", GetValues: (_) => { lock (ModelListLock) { return DynamicTipoModelList.AsEnumerable().Reverse().ToList(); } }, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 4));
+            Format = T2IParamTypes.Register<string>(new(Name: "[TIPO] Format", Description: "TIPO output format string. Extended is natural language.", Default: "<|special|>,\n<|characters|>, <|copyrights|>,\n<|artist|>,\n\n<|general|>,\n\n<|extended|>.\n\n<|quality|>, <|meta|>, <|rating|>", Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 5, ViewType: ParamViewType.PROMPT, Toggleable: true));
             NoFormatting = T2IParamTypes.Register<bool>(new(Name: "[TIPO] No Formatting", Description: "Use unformatted TIPO output.", Default: "false", IgnoreIf: "false", Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 5.5));
-            Temperature = T2IParamTypes.Register<double>(new(Name: "[TIPO] Temperature", Description: "TIPO sampling temperature.", Default: "0.5", Min: 0, Max: 2, Step: 0.01, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 6, ViewType: ParamViewType.SLIDER));
-            TopP = T2IParamTypes.Register<double>(new(Name: "[TIPO] Top P", Description: "TIPO sampling Top P.", Default: "0.95", Min: 0, Max: 1, Step: 0.01, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 7, ViewType: ParamViewType.SLIDER));
-            MinP = T2IParamTypes.Register<double>(new(Name: "[TIPO] Min P", Description: "TIPO sampling Min P.", Default: "0.05", Min: 0, Max: 1, Step: 0.01, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 8, ViewType: ParamViewType.SLIDER));
-            TopK = T2IParamTypes.Register<int>(new(Name: "[TIPO] Top K", Description: "TIPO sampling Top K.", Default: "80", Min: 0, Max: 200, Step: 1, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 9, ViewType: ParamViewType.SLIDER));
+            Temperature = T2IParamTypes.Register<double>(new(Name: "[TIPO] Temperature", Description: "TIPO sampling temperature. Higher = more random outputs", Default: "0.5", Min: 0, Max: 2, Step: 0.01, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 6, ViewType: ParamViewType.SLIDER, IsAdvanced: true));
+            TopP = T2IParamTypes.Register<double>(new(Name: "[TIPO] Top P", Description: "TIPO sampling Top P.", Default: "0.95", Min: 0, Max: 1, Step: 0.01, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 7, ViewType: ParamViewType.SLIDER, IsAdvanced: true));
+            MinP = T2IParamTypes.Register<double>(new(Name: "[TIPO] Min P", Description: "TIPO sampling Min P.", Default: "0.05", Min: 0, Max: 1, Step: 0.01, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 8, ViewType: ParamViewType.SLIDER, IsAdvanced: true));
+            TopK = T2IParamTypes.Register<int>(new(Name: "[TIPO] Top K", Description: "TIPO sampling Top K.", Default: "80", Min: 0, Max: 200, Step: 1, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 9, ViewType: ParamViewType.SLIDER, IsAdvanced: true));
             TagLength = T2IParamTypes.Register<string>(new(Name: "[TIPO] Tag Length", Description: "Target tag length.", Default: "long", GetValues: (_) => ["very_short", "short", "long", "very_long"], Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 10));
             NlLength = T2IParamTypes.Register<string>(new(Name: "[TIPO] NL Length", Description: "Target natural language length.", Default: "long", GetValues: (_) => ["very_short", "short", "long", "very_long"], Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 11));
             TipoSeed = T2IParamTypes.Register<long>(new(Name: "[TIPO] Seed", Description: "TIPO generation seed. Use -1 for random, uses the image generation seed if disabled.", Default: "-1", Min: -1, Max: long.MaxValue, Step: 1, Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 12, ViewType: ParamViewType.SEED, Clean: T2IParamTypes.Seed.Type.Clean, Toggleable: true));
-            Device = T2IParamTypes.Register<string>(new(Name: "[TIPO] Device", Description: "Device override for TIPO.", Default: "cuda", GetValues: (_) => ["cuda", "cpu"], Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 13));
+            Device = T2IParamTypes.Register<string>(new(Name: "[TIPO] Device", Description: "Device override for TIPO. \nDefault is cpu because cuda has reproducability issues.", Default: "cpu", GetValues: (_) => ["cuda", "cpu"], Group: TIPOParamGroup, FeatureFlag: "tipo_prompt_generation", OrderPriority: 13, IsAdvanced: true));
 
             // Add Parser for Dynamic Model List from ComfyUI Backend Info
             ComfyUIBackendExtension.RawObjectInfoParsers.Add(rawObjectInfo =>
@@ -103,7 +103,7 @@ namespace SwarmExtensions.TIPO
                 // Check if any TIPO parameter is actively used in the input
                  bool isTipoGroupActive = T2IParamTypes.Types.Values
                     .Where(p => p.Group == TIPOParamGroup && p.ID != null) // Ensure p.ID is not null before checking
-                    .Any(p => g.UserInput.ValuesInput.ContainsKey(p.ID));
+                    .Any(p => g.UserInput.TryGetRaw(p, out _));
 
                 if (isTipoGroupActive)
                 {
@@ -118,12 +118,14 @@ namespace SwarmExtensions.TIPO
                     string deviceSelection = g.UserInput.Get(Device);
                     // Get requested TIPO seed and determine final seed value
                     long tipoSeedRequest = g.UserInput.Get(TipoSeed);
+                    bool useFixedSeedControl = true;
                     long finalTipoSeed;
 
-                    if (g.UserInput.ValuesInput.ContainsKey(TipoSeed.Type.ID))
+                    if (g.UserInput.TryGet(TipoSeed, out _))
                     {
                         if (tipoSeedRequest == -1) // User explicitly set TIPO seed to -1 (Random)
                         {
+                            useFixedSeedControl = false;
                             finalTipoSeed = Random.Shared.Next(); // Generate a new random seed specifically for TIPO
                         }
                         else // User explicitly set a specific TIPO seed
@@ -157,6 +159,10 @@ namespace SwarmExtensions.TIPO
                         ["seed"] = finalTipoSeed, // Use the final calculated seed for the node input
                         ["device"] = deviceSelection
                     };
+                    if (useFixedSeedControl)
+                    {
+                        tipoInputs["control_after_generate"] = "fixed";
+                    }
                     string tipoNodeId = g.CreateNode("TIPO", tipoInputs, g.GetStableDynamicID(100, 0));
                     int tipoOutputIndex = useUnformatted ? 2 : 0; // 0 = formatted, 2 = unformatted
                     JArray tipoOutputLink = new JArray { tipoNodeId, tipoOutputIndex };
